@@ -1,0 +1,69 @@
+#
+# Build a llvm-ve-rv RPM out of an install at /usr/local/ve
+#
+Summary:        LLVM for VectorEngine of SX-Aurora TSUBASA 
+Name:		%{name}
+Version:	%{version}
+Release:	%{release}%{?dist}
+
+Group:		Development/Libraries
+License:	Apache License v2.0 with LLVM Exceptions
+URL:		https://github.com/sx-aurora-dev/llvm-project
+#Source0:	%{name}-%{version}.tar
+Source0:	llvmvars.sh
+Prefix:         %{iprefix}
+
+# Llvm for VE requires binutils, glibc, and header files for VE.
+Requires:	binutils-ve glibc-ve glibc-ve-devel kheaders-ve
+# Llvm for VE also requires shared libraries on host
+Requires:	libgcc glibc libstdc++
+# omp target related requirements
+Requires:	veoffload-aveo-devel veoffload-aveorun-devel veos-devel veosinfo-devel
+
+# We use name with version information to not to be removed old version
+# by yum, but this package is a llvm-ve package, so define it here.
+#Provides:       llvm-ve = %{version}-%{release}
+
+# Force to not compress binary files since it modifies object files
+# and converts elf header from VE to x86.
+%global __os_install_post %{nil}
+
+# FIXME: we need to support stripping and debug information for VE
+# Temporary disable generating debug package since host's rpmbuild
+# doesn't support rpm packaging for VE.  It shows errors on VE
+# binaries.
+%define debug_package %{nil}
+
+%description
+%{summary}
+
+%prep
+#%setup -q -n %{name}-%{version}
+/bin/echo "nothing done for 'prep' step"
+
+%build
+# this SPEC file implies that we have done a build with llvm-dev
+# and installed the llvm compiler at the targetted destination location
+# in /usr/local/ve
+/bin/echo "nothing done for 'build' step"
+
+%install
+mkdir -p %{buildroot}%{prefix}
+cp -prd %{prefix}/* %{buildroot}%{prefix}
+cp -p %{SOURCE0} %{buildroot}%{prefix}/bin
+
+%files
+%defattr(-,root,root,-)
+%dir %{prefix}
+%dir %{prefix}/bin
+%dir %{prefix}/include
+%dir %{prefix}/lib
+%dir %{prefix}/libexec
+%dir %{prefix}/share
+%{prefix}/bin/*
+%{prefix}/include/*
+%{prefix}/lib/*
+%{prefix}/libexec/*
+%{prefix}/share/*
+
+%changelog
